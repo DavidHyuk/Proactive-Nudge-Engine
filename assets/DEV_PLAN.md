@@ -11,12 +11,12 @@ This document outlines the step-by-step development plan for the Proactive-Nudge
     - Create functions to tokenize inputs for BERT (classification) and mT5 (generation).
     - Implement a mock data generator for testing purposes if real datasets are not present.
 
-- [ ] **Step 3: Trigger Model Implementation (`src/train_bert.py`)**
+- [x] **Step 3: Trigger Model Implementation (`src/train_bert.py`)**
     - Define the BERT Classifier architecture for the "Triggering" step.
     - Implement the training loop (training, validation).
     - Save the best model to `models/bert_trigger/`.
 
-- [ ] **Step 4: Generation Model Implementation (`src/train_mt5.py`)**
+- [x] **Step 4: Generation Model Implementation (`src/train_mt5.py`)**
     - Define the mT5 Generator architecture for the "Generation" step.
     - Implement the training loop (seq2seq fine-tuning).
     - Save the best model to `models/mt5_generator/`.
