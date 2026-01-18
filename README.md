@@ -32,6 +32,12 @@ Proactive-Nudge-Engine/
 │   ├── train_bert.py   # 트리거 분류 모델 학습
 │   └── train_mt5.py    # 넛지 생성 모델 학습
 ├── notebooks/          # 실험 및 시각화 (Jupyter)
+├── reports/            # 실험 고찰 리포트
+│   ├── 2026-xx-xx_BERT_trigger_test.md
+│   └── mT5_generation_analysis.md
+├── assets/             # README나 보고서에 쓸 이미지들
+│   ├── bert_loss.png
+│   └── architecture.png
 ├── scripts/            # DGX 서버 실행용 쉘 스크립트
 ├── .gitignore          # 대용량 모델 및 가상환경 제외
 ├── README.md
@@ -43,7 +49,7 @@ Proactive-Nudge-Engine/
 ### Prerequisites
 
 - **OS**: Linux (aarch64 recommended for DGX)
-- **GPU**: NVIDIA GPU + CUDA 12.1 (cu121)
+- **GPU**: NVIDIA GPU + CUDA 13.0 (cu130)
 - **Package Manager**: Conda (Miniconda or Anaconda)
 
 ### Environment Setup
@@ -55,9 +61,9 @@ DGX 서버(ARM 아키텍처) 환경에 최적화된 Python 3.11 환경을 구축
 conda create -n proactive-nudge -c conda-forge python=3.11 -y
 conda activate proactive-nudge
 
-# Libs
-pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cu121
-pip install transformers==4.37.2 datasets==2.16.1 accelerate==0.27.2 evaluate==0.4.1 sentencepiece==0.1.99
+# Libs (CUDA 13.0 대응 최신 버전)
+pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 --index-url https://download.pytorch.org/whl/cu130
+pip install transformers==4.57.6 datasets==4.5.0 accelerate==1.12.0 evaluate==0.4.6 sentencepiece==0.2.1 protobuf
 ```
 
 ## 📊 Datasets
