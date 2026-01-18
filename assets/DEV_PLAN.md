@@ -21,7 +21,7 @@ This document outlines the step-by-step development plan for the Proactive-Nudge
     - Implement the training loop (seq2seq fine-tuning).
     - Save the best model to `models/mt5_generator/`.
 
-- [ ] **Step 5: System Integration & Inference Demo**
+- [x] **Step 5: System Integration & Inference Demo**
     - Create a script (e.g., `src/inference.py`) that chains the two models.
     - Implement the workflow: `Context -> BERT (Check Nudge) -> if True -> mT5 (Generate Nudge)`.
     - Verify with sample inputs.
