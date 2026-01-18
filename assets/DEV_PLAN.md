@@ -25,3 +25,7 @@ This document outlines the step-by-step development plan for the Proactive-Nudge
     - Create a script (e.g., `src/inference.py`) that chains the two models.
     - Implement the workflow: `Context -> BERT (Check Nudge) -> if True -> mT5 (Generate Nudge)`.
     - Verify with sample inputs.
+
+- [x] **Step 6: Data Verification Notebook**
+    - Create `notebooks/01_verify_data.ipynb`.
+    - Visualize loaded data and tokenization results.
