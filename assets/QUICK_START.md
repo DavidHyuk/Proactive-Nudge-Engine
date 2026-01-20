@@ -53,12 +53,14 @@ python src/train_mt5.py --exp_name my_experiment_v1
 ## 3. 평가 방법 (Evaluation)
 
 ### 자동 분석 (Automated Analysis)
-`train_mt5.py` 학습이 완료되면, 상세 분석 리포트가 자동으로 생성됩니다.
+학습이 완료되면 각 모델에 대해 상세 분석 리포트가 자동으로 생성됩니다.
 
-- **리포트 경로**: `reports/my_experiment_v1_generation_analysis.md`
+- **리포트 경로**:
+    - Trigger 모델: `reports/my_experiment_v1_trigger_analysis.md`
+    - Generator 모델: `reports/my_experiment_v1_generation_analysis.md`
 - **내용**:
-    - **Metrics**: Loss 등 학습 지표
-    - **샘플 테이블**: 평가 데이터셋의 앞부분에 대해 **입력(Context)**, **정답(Target)**, **생성된 넛지(Generated Nudge)**를 비교한 테이블을 제공합니다.
+    - **Metrics**: Accuracy, Loss 등 학습 지표
+    - **샘플 테이블**: 평가 데이터셋에 대해 모델의 예측 결과(Trigger 여부 또는 생성된 문구)를 실제 정답과 비교한 테이블을 제공합니다.
 
 ### 추론 데모 (Inference Demo)
 전체 파이프라인(Trigger + Generator)을 대화형으로 테스트하려면 다음 명령어를 실행하세요:
@@ -130,12 +132,14 @@ python src/train_mt5.py --exp_name my_experiment_v1
 ## 3. Evaluation
 
 ### Automated Analysis
-After `train_mt5.py` finishes, it automatically generates a detailed analysis report.
+Detailed analysis reports are automatically generated for each model after training.
 
-- **Report Path**: `reports/my_experiment_v1_generation_analysis.md`
+- **Report Path**:
+    - Trigger Model: `reports/my_experiment_v1_trigger_analysis.md`
+    - Generator Model: `reports/my_experiment_v1_generation_analysis.md`
 - **Content**:
-    - **Metrics**: Loss, etc.
-    - **Sample Table**: A comparison table of the Input, Reference (Target), and Generated Nudge for the evaluation set.
+    - **Metrics**: Accuracy, Loss, and other training indicators.
+    - **Sample Table**: Comparison tables showing the model's predictions (Trigger decision or Generated text) against the ground truth.
 
 ### Inference Demo
 To test the full pipeline (Trigger + Generator) interactively:

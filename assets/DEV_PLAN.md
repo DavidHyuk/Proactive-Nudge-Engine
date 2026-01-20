@@ -13,13 +13,14 @@ This document outlines the step-by-step development plan for the Proactive-Nudge
 
 - [x] **Step 3: Trigger Model Implementation (`src/train_bert.py`)**
     - Define the BERT Classifier architecture for the "Triggering" step.
-    - Implement the training loop (training, validation).
-    - Save the best model to `models/bert_trigger/`.
+    - Implement the training loop with experiment name support (`--exp_name`).
+    - Save the best model to `models/bert_trigger/{exp_name}`.
+    - **(New)** Added automatic classification analysis report in `reports/`.
 
 - [x] **Step 4: Generation Model Implementation (`src/train_mt5.py`)**
     - Define the mT5 Generator architecture for the "Generation" step.
-    - Implement the training loop (seq2seq fine-tuning).
-    - Save the best model to `models/mt5_generator/`.
+    - Implement the training loop with experiment name support (`--exp_name`).
+    - Save the best model to `models/mt5_generator/{exp_name}`.
     - **(New)** Added automatic generation analysis report in `reports/`.
 
 - [x] **Step 5: System Integration & Inference Demo**

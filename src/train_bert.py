@@ -66,5 +66,43 @@ def train():
     trainer.save_model(output_dir)
     tokenizer.save_pretrained(output_dir)
 
+    # Classification Analysis Step
+    print("Running classification analysis on evaluation set...")
+    predictions_output = trainer.predict(eval_dataset)
+    logits = predictions_output.predictions
+    labels = predictions_output.label_ids
+    metrics = predictions_output.metrics
+    
+    # Get predicted classes
+    import numpy as np
+    preds = np.argmax(logits, axis=-1)
+    
+    # Decode inputs
+    decoded_inputs = []
+    for i in range(len(eval_dataset)):
+        item = eval_dataset[i]
+        decoded_inputs.append(tokenizer.decode(item['input_ids'], skip_special_tokens=True))
+
+    # Save to reports
+    os.makedirs("reports", exist_ok=True)
+    report_path = f"reports/{args.exp_name}_trigger_analysis.md"
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(f"# Trigger Classification Analysis: {args.exp_name}\n\n")
+        f.write(f"## Metrics\n\n")
+        for k, v in metrics.items():
+            f.write(f"- **{k}**: {v}\n")
+        f.write("\n## Sample Predictions\n\n")
+        f.write("| Context | Ground Truth | Prediction | Result |\n")
+        f.write("| :--- | :--- | :--- | :--- |\n")
+        # Save first 50 samples
+        for i in range(min(50, len(preds))):
+            ctx = decoded_inputs[i].replace("\n", " ")
+            gt = "Trigger" if labels[i] == 1 else "No Trigger"
+            pr = "Trigger" if preds[i] == 1 else "No Trigger"
+            res = "✅" if labels[i] == preds[i] else "❌"
+            f.write(f"| {ctx} | {gt} | {pr} | {res} |\n")
+    
+    print(f"Analysis report saved to {report_path}")
+
 if __name__ == "__main__":
     train()
