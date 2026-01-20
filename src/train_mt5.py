@@ -1,5 +1,6 @@
 import os
 import torch
+import numpy as np
 import argparse
 import wandb
 from transformers import (
@@ -52,6 +53,7 @@ def train():
         num_train_epochs=1,
         per_device_train_batch_size=64,
         per_device_eval_batch_size=64,
+        learning_rate=3e-4,
         warmup_steps=10,
         weight_decay=0.01,
         logging_dir=logging_dir,
@@ -89,6 +91,7 @@ def train():
     predictions, labels, metrics = trainer.predict(eval_dataset, metric_key_prefix="predict")
     
     # Decode predictions and labels
+    predictions = np.where(predictions != -100, predictions, tokenizer.pad_token_id)
     decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
     # Replace -100 in labels as we can't decode them
     labels = [[(l if l != -100 else tokenizer.pad_token_id) for l in label] for label in labels]
