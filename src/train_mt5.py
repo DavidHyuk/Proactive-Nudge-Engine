@@ -66,5 +66,42 @@ def train():
     trainer.save_model(output_dir)
     tokenizer.save_pretrained(output_dir)
 
+    # Generation Analysis Step
+    print("Running generation analysis on evaluation set...")
+    predictions, labels, metrics = trainer.predict(eval_dataset, metric_key_prefix="predict")
+    
+    # Decode predictions and labels
+    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
+    # Replace -100 in labels as we can't decode them
+    labels = [[(l if l != -100 else tokenizer.pad_token_id) for l in label] for label in labels]
+    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+    
+    # Decode inputs
+    # Need to access raw input_ids from eval_dataset items
+    decoded_inputs = []
+    for i in range(len(eval_dataset)):
+        item = eval_dataset[i]
+        decoded_inputs.append(tokenizer.decode(item['input_ids'], skip_special_tokens=True))
+
+    # Save to reports
+    os.makedirs("reports", exist_ok=True)
+    report_path = f"reports/{args.exp_name}_generation_analysis.md"
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(f"# Generation Analysis: {args.exp_name}\n\n")
+        f.write(f"## Metrics\n\n")
+        for k, v in metrics.items():
+            f.write(f"- **{k}**: {v}\n")
+        f.write("\n## Sample Generations\n\n")
+        f.write("| Context | Reference (Target) | Generated Nudge |\n")
+        f.write("| :--- | :--- | :--- |\n")
+        # Save first 50 samples
+        for i in range(min(50, len(decoded_preds))):
+            ctx = decoded_inputs[i].replace("\n", " ")
+            ref = decoded_labels[i].replace("\n", " ")
+            pred = decoded_preds[i].replace("\n", " ")
+            f.write(f"| {ctx} | {ref} | {pred} |\n")
+    
+    print(f"Analysis report saved to {report_path}")
+
 if __name__ == "__main__":
     train()

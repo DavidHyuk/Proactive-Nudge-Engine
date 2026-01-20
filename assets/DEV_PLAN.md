@@ -20,6 +20,7 @@ This document outlines the step-by-step development plan for the Proactive-Nudge
     - Define the mT5 Generator architecture for the "Generation" step.
     - Implement the training loop (seq2seq fine-tuning).
     - Save the best model to `models/mt5_generator/`.
+    - **(New)** Added automatic generation analysis report in `reports/`.
 
 - [x] **Step 5: System Integration & Inference Demo**
     - Create a script (e.g., `src/inference.py`) that chains the two models.
