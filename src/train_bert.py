@@ -1,6 +1,7 @@
 import os
 import torch
 import argparse
+import wandb
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -36,19 +37,36 @@ def train():
         model_name,
         num_labels=2 # 0: No Nudge, 1: Nudge
     )
+
+    # Initialize WandB
+    wandb.init(
+        project="Proactive-Nudge-Engine",
+        name=f"bert-trigger-{args.exp_name}",
+        config={
+            "model": model_name,
+            "experiment": args.exp_name,
+            "task": "trigger"
+        }
+    )
     
     training_args = TrainingArguments(
         output_dir=output_dir,
-        num_train_epochs=3,
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
+        num_train_epochs=1,
+        per_device_train_batch_size=64,
+        per_device_eval_batch_size=64,
         warmup_steps=10,
         weight_decay=0.01,
         logging_dir=logging_dir,
         logging_steps=10,
-        eval_strategy="epoch", # newer version preference
-        save_strategy="epoch",
+        eval_strategy="steps",
+        eval_steps=100,
+        save_strategy="steps",
+        save_steps=100,
+        save_total_limit=2,
         load_best_model_at_end=True,
+        dataloader_num_workers=8,
+        dataloader_pin_memory=True,
+        report_to="wandb",
         use_cpu=not torch.cuda.is_available()
     )
     

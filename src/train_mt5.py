@@ -1,6 +1,7 @@
 import os
 import torch
 import argparse
+import wandb
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
@@ -32,22 +33,39 @@ def train():
     
     print(f"Loading model: {model_name}")
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
+    # Initialize WandB
+    wandb.init(
+        project="Proactive-Nudge-Engine",
+        name=f"mt5-generator-{args.exp_name}",
+        config={
+            "model": model_name,
+            "experiment": args.exp_name,
+            "task": "generation"
+        }
+    )
     
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
 
     training_args = Seq2SeqTrainingArguments(
         output_dir=output_dir,
         num_train_epochs=1,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
+        per_device_train_batch_size=64,
+        per_device_eval_batch_size=64,
         warmup_steps=10,
         weight_decay=0.01,
         logging_dir=logging_dir,
         logging_steps=10,
-        eval_strategy="epoch",
-        save_strategy="epoch",
+        eval_strategy="steps",
+        eval_steps=500,
+        save_strategy="steps",
+        save_steps=500,
+        save_total_limit=2,
         load_best_model_at_end=True,
         predict_with_generate=True,
+        dataloader_num_workers=8,
+        dataloader_pin_memory=True,
+        report_to="wandb",
         use_cpu=not torch.cuda.is_available()
     )
     
