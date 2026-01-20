@@ -27,7 +27,7 @@ class ProactiveDataset(Dataset):
         }
         
         if self.task == "trigger":
-            item["labels"] = torch.tensor(self.labels[idx], dtype=torch.long)
+            item["labels"] = self.labels[idx]
         elif self.task == "generation":
             item["labels"] = self.labels[idx]
             
@@ -112,7 +112,10 @@ def tokenize_data(data, tokenizer, task="trigger", max_length=128):
     )
     
     if task == "trigger":
-        labels = [d['trigger_label'] for d in data]
+        import numpy as np
+        labels_list = [d['trigger_label'] for d in data]
+        # Pre-convert to tensor via numpy for efficiency and to resolve warning
+        labels = torch.tensor(np.array(labels_list), dtype=torch.long)
         return ProactiveDataset(tokenized_inputs, labels=labels, task=task)
     
     elif task == "generation":
