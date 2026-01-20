@@ -54,11 +54,12 @@ class ProactiveNudgeEngine:
             }
         
         # Step 2: Generation (if trigger is True)
+        # Add task prefix for T5
         gen_inputs = self.generator_tokenizer(
-            context, 
-            return_tensors="pt", 
-            truncation=True, 
-            padding=True, 
+            "nudge: " + context,
+            return_tensors="pt",
+            truncation=True,
+            padding=True,
             max_length=128
         ).to(self.device)
         
