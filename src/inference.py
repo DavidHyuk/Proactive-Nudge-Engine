@@ -1,3 +1,4 @@
+import argparse
 import torch
 from transformers import (
     AutoModelForSequenceClassification,
@@ -79,7 +80,15 @@ class ProactiveNudgeEngine:
         }
 
 if __name__ == "__main__":
-    engine = ProactiveNudgeEngine()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_name", type=str, default="default", help="Name of the experiment to load")
+    args = parser.parse_args()
+    
+    # Construct paths based on exp_name
+    trigger_path = f"models/bert_trigger/{args.exp_name}"
+    generator_path = f"models/mt5_generator/{args.exp_name}"
+    
+    engine = ProactiveNudgeEngine(trigger_model_path=trigger_path, generator_model_path=generator_path)
     
     test_contexts = [
         "I have a meeting with the client at 3 PM.",

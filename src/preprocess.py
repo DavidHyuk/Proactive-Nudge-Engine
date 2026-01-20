@@ -114,16 +114,24 @@ def create_dummy_data(num_samples=1000):
             
     return data
 
-def load_real_data(tokenizer, task="trigger"):
+def load_real_data(tokenizer, task="trigger", split="train"):
     # Try DailyDialog
     if os.path.exists("data/dailydialog"):
-        print("Loading DailyDialog...")
+        print(f"Loading DailyDialog ({split})...")
         try:
             dataset = load_from_disk("data/dailydialog")
-            data_split = dataset['train']
+            full_data = dataset['train']
+            
+            # 90% train, 10% eval
+            split_idx = int(len(full_data) * 0.9)
+            if split == "train":
+                data_subset = full_data.select(range(0, split_idx))
+            else:
+                data_subset = full_data.select(range(split_idx, len(full_data)))
+
             processed_data = []
-            for i in range(min(len(data_split), 5000)):
-                item = data_split[i]
+            for i in range(len(data_subset)):
+                item = data_subset[i]
                 dialog = item['dialog']
                 for j in range(len(dialog) - 1):
                     if len(dialog[j].split()) > 2:
@@ -138,20 +146,27 @@ def load_real_data(tokenizer, task="trigger"):
                 processed_data.extend([d for d in neg if d['trigger_label']==0])
                 random.shuffle(processed_data)
             
-            print(f"Loaded {len(processed_data)} samples from DailyDialog.")
+            print(f"Loaded {len(processed_data)} samples from DailyDialog {split} split.")
             return ProactiveDataset(processed_data, tokenizer, task=task)
         except Exception as e:
             print(f"Error loading DailyDialog: {e}")
 
     # Try DialogSum (The fallback added by user)
     if os.path.exists("data/dialogsum"):
-        print("Loading DialogSum...")
+        print(f"Loading DialogSum ({split})...")
         try:
             dataset = load_from_disk("data/dialogsum")
-            data_split = dataset['train']
+            full_data = dataset['train']
+            
+            split_idx = int(len(full_data) * 0.9)
+            if split == "train":
+                data_subset = full_data.select(range(0, split_idx))
+            else:
+                data_subset = full_data.select(range(split_idx, len(full_data)))
+
             processed_data = []
-            for i in range(min(len(data_split), 5000)):
-                item = data_split[i]
+            for i in range(len(data_subset)):
+                item = data_subset[i]
                 lines = item['dialogue'].split('\n')
                 for j in range(len(lines) - 1):
                     p1 = lines[j].split(':', 1)
@@ -168,20 +183,27 @@ def load_real_data(tokenizer, task="trigger"):
                 processed_data.extend([d for d in neg if d['trigger_label']==0])
                 random.shuffle(processed_data)
             
-            print(f"Loaded {len(processed_data)} samples from DialogSum.")
+            print(f"Loaded {len(processed_data)} samples from DialogSum {split} split.")
             return ProactiveDataset(processed_data, tokenizer, task=task)
         except Exception as e:
             print(f"Error loading DialogSum: {e}")
 
     # Try SAMsum
     if os.path.exists("data/samsum"):
-        print("Loading SAMsum...")
+        print(f"Loading SAMsum ({split})...")
         try:
             dataset = load_from_disk("data/samsum")
-            data_split = dataset['train']
+            full_data = dataset['train']
+            
+            split_idx = int(len(full_data) * 0.9)
+            if split == "train":
+                data_subset = full_data.select(range(0, split_idx))
+            else:
+                data_subset = full_data.select(range(split_idx, len(full_data)))
+
             processed_data = []
-            for i in range(min(len(data_split), 5000)):
-                item = data_split[i]
+            for i in range(len(data_subset)):
+                item = data_subset[i]
                 lines = item['dialogue'].split('\n')
                 for j in range(len(lines) - 1):
                     p1 = lines[j].split(':', 1)
@@ -198,21 +220,23 @@ def load_real_data(tokenizer, task="trigger"):
                 processed_data.extend([d for d in neg if d['trigger_label']==0])
                 random.shuffle(processed_data)
             
-            print(f"Loaded {len(processed_data)} samples from SAMsum.")
+            print(f"Loaded {len(processed_data)} samples from SAMsum {split} split.")
             return ProactiveDataset(processed_data, tokenizer, task=task)
         except Exception as e:
             print(f"Error loading SAMsum: {e}")
 
     return None
 
-def load_processed_data(tokenizer, task="trigger", num_samples=100, use_dummy=False):
+def load_processed_data(tokenizer, task="trigger", num_samples=100, use_dummy=False, split="train"):
     if not use_dummy:
-        dataset = load_real_data(tokenizer, task)
+        dataset = load_real_data(tokenizer, task, split=split)
         if dataset:
             return dataset
             
-    print("Using synthetic data generator...")
-    raw_data = create_dummy_data(1000 if num_samples < 1000 else num_samples)
+    print(f"Using synthetic data generator ({split})...")
+    # For dummy data, we can just use the num_samples requested or a reasonable default
+    samples_to_gen = num_samples if split == "train" else max(num_samples // 5, 20)
+    raw_data = create_dummy_data(samples_to_gen)
     if task == "generation":
         raw_data = [d for d in raw_data if d['trigger_label'] == 1]
     return ProactiveDataset(raw_data, tokenizer, task=task)

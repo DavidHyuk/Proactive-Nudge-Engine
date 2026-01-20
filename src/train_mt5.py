@@ -1,5 +1,6 @@
 import os
 import torch
+import argparse
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
@@ -13,16 +14,21 @@ except ImportError:
     from src.preprocess import load_processed_data
 
 def train():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_name", type=str, default="default", help="Name of the experiment")
+    args = parser.parse_args()
+
     model_name = "google/mt5-small"
-    output_dir = "models/mt5_generator"
+    output_dir = f"models/mt5_generator/{args.exp_name}"
+    logging_dir = f"./logs/{args.exp_name}"
     
     print(f"Loading tokenizer: {model_name}")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     
     print("Loading dataset...")
     # Only "nudge needed" examples are useful for generation training
-    train_dataset = load_processed_data(tokenizer, task="generation", num_samples=100)
-    eval_dataset = load_processed_data(tokenizer, task="generation", num_samples=20)
+    train_dataset = load_processed_data(tokenizer, task="generation", num_samples=100, split="train")
+    eval_dataset = load_processed_data(tokenizer, task="generation", num_samples=20, split="eval")
     
     print(f"Loading model: {model_name}")
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
@@ -36,7 +42,7 @@ def train():
         per_device_eval_batch_size=4,
         warmup_steps=10,
         weight_decay=0.01,
-        logging_dir='./logs',
+        logging_dir=logging_dir,
         logging_steps=10,
         eval_strategy="epoch",
         save_strategy="epoch",

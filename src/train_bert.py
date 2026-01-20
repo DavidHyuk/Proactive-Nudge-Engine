@@ -1,5 +1,6 @@
 import os
 import torch
+import argparse
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -14,16 +15,21 @@ except ImportError:
     from src.preprocess import load_processed_data
 
 def train():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_name", type=str, default="default", help="Name of the experiment")
+    args = parser.parse_args()
+    
     model_name = "bert-base-uncased" # Using standard BERT as trigger
-    output_dir = "models/bert_trigger"
+    output_dir = f"models/bert_trigger/{args.exp_name}"
+    logging_dir = f"./logs/{args.exp_name}"
     
     print(f"Loading tokenizer: {model_name}")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     
     print("Loading dataset...")
     # Generate sufficient dummy data for training
-    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=100)
-    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=20)
+    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=100, split="train")
+    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=20, split="eval")
     
     print(f"Loading model: {model_name}")
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -38,7 +44,7 @@ def train():
         per_device_eval_batch_size=8,
         warmup_steps=10,
         weight_decay=0.01,
-        logging_dir='./logs',
+        logging_dir=logging_dir,
         logging_steps=10,
         eval_strategy="epoch", # newer version preference
         save_strategy="epoch",
