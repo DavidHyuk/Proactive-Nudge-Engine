@@ -29,7 +29,8 @@ class ProactiveDataset(Dataset):
         if self.task == "trigger":
             item["labels"] = self.labels[idx]
         elif self.task == "generation":
-            item["labels"] = self.labels[idx]
+            # Return as list to avoid 'list of numpy arrays' warning in DataCollator
+            item["labels"] = self.labels[idx].tolist()
             
         return item
 
@@ -156,10 +157,18 @@ def load_real_data(tokenizer, task="trigger", split="train"):
             for i in range(len(data_subset)):
                 item = data_subset[i]
                 dialog = item['dialog']
+                # Use a window of history
+                history_window = 3
                 for j in range(len(dialog) - 1):
+                    # Construct context from up to 'history_window' previous turns + current turn
+                    start_idx = max(0, j - history_window + 1)
+                    context_turns = dialog[start_idx : j+1]
+                    # Join with a separator (e.g., newline or special token)
+                    context_str = " ".join(context_turns)
+                    
                     if len(dialog[j].split()) > 2:
                         raw_data.append({
-                            "context": dialog[j],
+                            "context": context_str,
                             "trigger_label": 1,
                             "target_nudge": dialog[j+1]
                         })
@@ -182,12 +191,20 @@ def load_real_data(tokenizer, task="trigger", split="train"):
             for i in range(len(data_subset)):
                 item = data_subset[i]
                 lines = item['dialogue'].split('\n')
+                history_window = 3
+                
                 for j in range(len(lines) - 1):
-                    p1 = lines[j].split(':', 1)
+                    # Get target
                     p2 = lines[j+1].split(':', 1)
-                    if len(p1)==2 and len(p2)==2:
+                    
+                    if len(p2) == 2:
+                        # Construct context
+                        start_idx = max(0, j - history_window + 1)
+                        context_lines = lines[start_idx : j+1]
+                        context_str = " ".join(context_lines) # Keep Speaker: Text format
+                        
                         raw_data.append({
-                            "context": p1[1].strip(),
+                            "context": context_str,
                             "trigger_label": 1,
                             "target_nudge": p2[1].strip()
                         })
@@ -210,12 +227,18 @@ def load_real_data(tokenizer, task="trigger", split="train"):
             for i in range(len(data_subset)):
                 item = data_subset[i]
                 lines = item['dialogue'].split('\n')
+                history_window = 3
+                
                 for j in range(len(lines) - 1):
-                    p1 = lines[j].split(':', 1)
                     p2 = lines[j+1].split(':', 1)
-                    if len(p1)==2 and len(p2)==2:
+                    
+                    if len(p2) == 2:
+                        start_idx = max(0, j - history_window + 1)
+                        context_lines = lines[start_idx : j+1]
+                        context_str = " ".join(context_lines)
+                        
                         raw_data.append({
-                            "context": p1[1].strip(),
+                            "context": context_str,
                             "trigger_label": 1,
                             "target_nudge": p2[1].strip()
                         })
