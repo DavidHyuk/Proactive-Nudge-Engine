@@ -48,22 +48,22 @@ Proactive-Nudge-Engine/
 
 ### Prerequisites
 
-- **OS**: Linux (aarch64 recommended for DGX)
-- **GPU**: NVIDIA GPU + CUDA 13.0 (cu130)
+- **OS**: macOS
+- **GPU**: Apple Silicon (MPS)
 - **Package Manager**: Conda (Miniconda or Anaconda)
 
 ### Environment Setup
 
-DGX 서버(ARM 아키텍처) 환경에 최적화된 Python 3.11 환경을 구축합니다.
+macOS (Apple Silicon) 환경에 최적화된 Python 3.11 환경을 구축합니다.
 
 ```bash
 # 환경 생성
 conda create -n proactive-nudge -c conda-forge python=3.11 -y
 conda activate proactive-nudge
 
-# Libs (CUDA 13.0 대응 최신 버전)
-pip install torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1 --index-url https://download.pytorch.org/whl/cu130
-pip install transformers==4.57.6 datasets==4.5.0 accelerate==1.12.0 evaluate==0.4.6 sentencepiece==0.2.1 protobuf
+# PyTorch for Apple Silicon (MPS)
+pip install torch torchvision torchaudio
+pip install transformers datasets accelerate evaluate sentencepiece protobuf
 ```
 
 ## 📊 Datasets
