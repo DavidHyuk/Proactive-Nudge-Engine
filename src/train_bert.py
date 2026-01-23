@@ -29,8 +29,8 @@ def train():
     
     print("Loading dataset...")
     # Generate sufficient dummy data for training
-    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=100, split="train")
-    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=20, split="eval")
+    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=1000, split="train")
+    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=200, split="eval")
     
     print(f"Loading model: {model_name}")
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -52,22 +52,22 @@ def train():
     training_args = TrainingArguments(
         output_dir=output_dir,
         num_train_epochs=1,
-        per_device_train_batch_size=64,
-        per_device_eval_batch_size=64,
-        warmup_steps=10,
+        per_device_train_batch_size=128,
+        per_device_eval_batch_size=128,
+        warmup_steps=20,
         weight_decay=0.01,
         logging_dir=logging_dir,
         logging_steps=10,
         eval_strategy="steps",
-        eval_steps=100,
+        eval_steps=200,
         save_strategy="steps",
-        save_steps=100,
+        save_steps=200,
         save_total_limit=2,
         load_best_model_at_end=True,
-        dataloader_num_workers=8,
-        dataloader_pin_memory=True,
+        dataloader_num_workers=0,
+        dataloader_pin_memory=False,
         report_to="wandb",
-        use_cpu=not torch.cuda.is_available()
+        use_cpu=False
     )
     
     trainer = Trainer(

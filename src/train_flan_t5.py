@@ -20,8 +20,8 @@ def train():
     parser.add_argument("--exp_name", type=str, default="default", help="Name of the experiment")
     args = parser.parse_args()
 
-    model_name = "google/mt5-small"
-    output_dir = f"models/mt5_generator/{args.exp_name}"
+    model_name = "google/flan-t5-small"
+    output_dir = f"models/flan_t5_generator/{args.exp_name}"
     logging_dir = f"./logs/{args.exp_name}"
     
     print(f"Loading tokenizer: {model_name}")
@@ -29,8 +29,8 @@ def train():
     
     print("Loading dataset...")
     # Only "nudge needed" examples are useful for generation training
-    train_dataset = load_processed_data(tokenizer, task="generation", num_samples=100, split="train")
-    eval_dataset = load_processed_data(tokenizer, task="generation", num_samples=20, split="eval")
+    train_dataset = load_processed_data(tokenizer, task="generation", num_samples=1000, split="train")
+    eval_dataset = load_processed_data(tokenizer, task="generation", num_samples=200, split="eval")
     
     print(f"Loading model: {model_name}")
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
@@ -38,7 +38,7 @@ def train():
     # Initialize WandB
     wandb.init(
         project="Proactive-Nudge-Engine",
-        name=f"mt5-generator-{args.exp_name}",
+        name=f"flan-t5-generator-{args.exp_name}",
         config={
             "model": model_name,
             "experiment": args.exp_name,
@@ -49,27 +49,35 @@ def train():
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
 
     training_args = Seq2SeqTrainingArguments(
-        output_dir=output_dir,
-        num_train_epochs=1,
-        per_device_train_batch_size=64,
-        per_device_eval_batch_size=64,
-        learning_rate=3e-4,
-        warmup_steps=10,
-        weight_decay=0.01,
-        logging_dir=logging_dir,
-        logging_steps=10,
-        eval_strategy="steps",
-        eval_steps=500,
-        save_strategy="steps",
-        save_steps=500,
-        save_total_limit=2,
-        load_best_model_at_end=True,
-        predict_with_generate=True,
-        dataloader_num_workers=8,
-        dataloader_pin_memory=True,
-        report_to="wandb",
-        use_cpu=not torch.cuda.is_available()
-    )
+    output_dir=output_dir,
+
+    num_train_epochs=1,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=4,
+    gradient_accumulation_steps=4,
+
+    learning_rate=3e-4,
+    warmup_steps=0,
+    weight_decay=0.0,
+
+    fp16=False,
+    predict_with_generate=False,
+
+    logging_steps=10,
+
+    eval_strategy="steps",   
+    eval_steps=200,
+    save_strategy="steps",   
+    save_steps=200,
+
+    load_best_model_at_end=True,
+
+    dataloader_num_workers=0,
+    dataloader_pin_memory=False,
+    report_to="wandb",
+    use_cpu=False
+)
+
     
     trainer = Seq2SeqTrainer(
         model=model,

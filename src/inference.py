@@ -7,9 +7,17 @@ from transformers import (
 )
 
 class ProactiveNudgeEngine:
-    def __init__(self, trigger_model_path="models/bert_trigger", generator_model_path="models/mt5_generator"):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        
+    def __init__(self, trigger_model_path="models/bert_trigger", generator_model_path="models/flan_t5_generator"):
+        # Determine device
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
+
+        print(f"Using device: {self.device}")
+
         # Load Trigger Model
         print(f"Loading Trigger Model from {trigger_model_path}...")
         try:
@@ -42,16 +50,20 @@ class ProactiveNudgeEngine:
         
         with torch.no_grad():
             outputs = self.trigger_model(**inputs)
+            print('outputs.logits:', outputs.logits)
             probabilities = torch.softmax(outputs.logits, dim=-1)
+            print('probabilities:', probabilities)
             prediction = torch.argmax(probabilities, dim=-1).item()
+            print('prediction:', prediction)
             
-        if prediction == 0:
-            return {
-                "context": context,
-                "trigger": False,
-                "nudge": None,
-                "confidence": probabilities[0][0].item()
-            }
+        #if prediction == 0:
+         #   return {
+          #      "context": context,
+           #     "trigger": False,
+            #    "nudge": None,
+             #   "confidence": probabilities[0][0].item()
+            #}
+        
         
         # Step 2: Generation (if trigger is True)
         # Add task prefix for T5
@@ -87,7 +99,7 @@ if __name__ == "__main__":
     
     # Construct paths based on exp_name
     trigger_path = f"models/bert_trigger/{args.exp_name}"
-    generator_path = f"models/mt5_generator/{args.exp_name}"
+    generator_path = f"models/flan_t5_generator/{args.exp_name}"
     
     engine = ProactiveNudgeEngine(trigger_model_path=trigger_path, generator_model_path=generator_path)
     
@@ -95,7 +107,8 @@ if __name__ == "__main__":
         "I have a meeting with the client at 3 PM.",
         "It's sunny and warm outside.",
         "My flight leaves in 2 hours and I haven't packed.",
-        "Just watching a movie."
+        "Just watching a movie.",
+        "# person1 # : are you sure? # person2 # : i know it does. i take this bus a lot. # person1 # : how long does the bus take to get there?"
     ]
     
     print("\n--- Running Inference Tests ---\n")
@@ -106,3 +119,4 @@ if __name__ == "__main__":
         if result['trigger']:
             print(f"Nudge: {result['nudge']}")
         print("-" * 30)
+
