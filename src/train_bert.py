@@ -29,8 +29,8 @@ def train():
     
     print("Loading dataset...")
     # Generate sufficient dummy data for training
-    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=1000, split="train")
-    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=200, split="eval")
+    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=1000, split="train", use_dummy=True)
+    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=200, split="eval", use_dummy=True)
     
     print(f"Loading model: {model_name}")
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -51,7 +51,7 @@ def train():
     
     training_args = TrainingArguments(
         output_dir=output_dir,
-        num_train_epochs=1,
+        num_train_epochs=5,
         per_device_train_batch_size=128,
         per_device_eval_batch_size=128,
         warmup_steps=20,
