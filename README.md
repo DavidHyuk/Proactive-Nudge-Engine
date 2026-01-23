@@ -9,12 +9,12 @@ Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 �
 ### Core Workflow
 
 1. **Triggering (BERT)**: 현재 대화나 상황 맥락을 분석하여 "지금 넛지가 필요한 타이밍인가?"를 분류합니다.
-2. **Generation (mT5)**: 넛지가 필요하다고 판단되면, 다국어 지원이 가능한 mT5 모델을 통해 상황에 맞는 최적의 제안 문구를 생성합니다.
+2. **Generation (flan_t5)**: 넛지가 필요하다고 판단되면, flan_t5 모델을 통해 상황에 맞는 최적의 제안 문구를 생성합니다.
 
 ## 🏗 System Architecture
 
 ```text
-[ Context Input ] -> [ BERT Classifier ] -> (Nudge Needed?) -> [ mT5 Generator ] -> [ Proactive Cue ]
+[ Context Input ] -> [ BERT Classifier ] -> (Nudge Needed?) -> [ flan_t5 Generator ] -> [ Proactive Cue ]
       (App, SMS,           (Trigger)                               (Content)             (UI Card)
        Calendar)
 ```
@@ -26,15 +26,15 @@ DGX 서버에서의 효율적인 관리와 학습을 위해 아래와 같은 구
 ```text
 Proactive-Nudge-Engine/
 ├── data/               # Taskmaster, MultiWOZ 등 데이터셋 저장
-├── models/             # Fine-tuned BERT & mT5 체크포인트
+├── models/             # Fine-tuned BERT & flan_t5 체크포인트
 ├── src/                # 핵심 소스 코드
 │   ├── preprocess.py   # 데이터 전처리 스크립트
 │   ├── train_bert.py   # 트리거 분류 모델 학습
-│   └── train_mt5.py    # 넛지 생성 모델 학습
+│   └── train_flan_t5.py    # 넛지 생성 모델 학습
 ├── notebooks/          # 실험 및 시각화 (Jupyter)
 ├── reports/            # 실험 고찰 리포트
 │   ├── 2026-xx-xx_BERT_trigger_test.md
-│   └── mT5_generation_analysis.md
+│   └── flan_t5_generation_analysis.md
 ├── assets/             # README나 보고서에 쓸 이미지들
 │   ├── bert_loss.png
 │   └── architecture.png
