@@ -14,7 +14,7 @@ Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 �
 ## 🏗 System Architecture
 
 ```text
-[ Context Input ] -> [ MobileBERT Classifier ] -> (Category ID) -> [ Smart Retrieval ] -> [ Magic Cue UI ]
+[ Context Input ] -> [ MobileBERT Classifier ] -> (Category ID) -> [ Smart Retrieval ] -> [ Proactive Nudge UI ]
       (App, SMS)       (Multi-class Trigger)                         (Local DB)            (Card/Bubble)
 ```
 
@@ -36,7 +36,7 @@ Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 �
 
 ## 📂 Project Structure
 
-DGX 서버에서의 효율적인 관리와 학습을 위해 아래와 같은 구조를 유지합니다.
+프로젝트의 효율적인 관리와 학습을 위해 아래와 같은 구조를 유지합니다.
 
 ```text
 Proactive-Nudge-Engine/
@@ -53,7 +53,6 @@ Proactive-Nudge-Engine/
 ├── assets/             # README나 보고서에 쓸 이미지들
 │   ├── bert_loss.png
 │   └── architecture.png
-├── scripts/            # DGX 서버 실행용 쉘 스크립트
 ├── .gitignore          # 대용량 모델 및 가상환경 제외
 ├── README.md
 └── requirements.txt
