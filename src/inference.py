@@ -1,8 +1,8 @@
 import argparse
 import torch
+import os  # Added os
 from transformers import (
     AutoModelForSequenceClassification,
-    AutoModelForSeq2SeqLM,
     AutoTokenizer,
 )
 
@@ -11,7 +11,7 @@ class ProactiveNudgeEngine:
     def __init__(
         self,
         trigger_model_path="models/bert_trigger",
-        generator_model_path="models/flan_t5_generator",
+        # generator_model_path removed
     ):
         # Determine device
         if torch.cuda.is_available():
@@ -32,32 +32,35 @@ class ProactiveNudgeEngine:
             ).to(self.device)
         except OSError:
             print(
-                f"Warning: Could not load trained model from {trigger_model_path}. Loading base model 'bert-base-uncased' instead."
+                f"Warning: Could not load trained model from {trigger_model_path}. Loading base model 'google/mobilebert-uncased' instead."
             )
-            self.trigger_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+            self.trigger_tokenizer = AutoTokenizer.from_pretrained("google/mobilebert-uncased")
+            # 8 labels as defined in preprocess.py/train_bert.py
             self.trigger_model = AutoModelForSequenceClassification.from_pretrained(
-                "bert-base-uncased", num_labels=2
+                "google/mobilebert-uncased", num_labels=8
             ).to(self.device)
 
-        # Load Generator Model
-        print(f"Loading Generator Model from {generator_model_path}...")
-        try:
-            self.generator_tokenizer = AutoTokenizer.from_pretrained(
-                generator_model_path
-            )
-            self.generator_model = AutoModelForSeq2SeqLM.from_pretrained(
-                generator_model_path
-            ).to(self.device)
-        except OSError:
-            print(
-                f"Warning: Could not load trained model from {generator_model_path}. Loading base model 'google/mt5-small' instead."
-            )
-            self.generator_tokenizer = AutoTokenizer.from_pretrained("google/mt5-small")
-            self.generator_model = AutoModelForSeq2SeqLM.from_pretrained(
-                "google/mt5-small"
-            ).to(self.device)
-
-    TRIGGER_LABEL_ID = 1  # LABEL_1 = trigger
+        # Magic Cue Dummy Database
+        self.DUMMY_DB = {
+            1: "Show Passport #A12345678", # Passport
+            2: "Show WiFi: MyNetwork / Pass123", # Wifi
+            3: "Share: 123 Maple St, Springfield", # Address
+            4: "View: Upcoming Appointment @ 2 PM", # Schedule (Generic fallback)
+            5: "Reminder: Check Weather / Take Umbrella", # Weather
+            6: "Alert: Flight UA123 departs in 3 hours", # Flight
+            7: "Show Loyalty Card: #8839201", # Membership
+        }
+        
+        self.LABEL_MAP = {
+            0: "No Trigger",
+            1: "Passport",
+            2: "Wifi",
+            3: "Address",
+            4: "Schedule",
+            5: "Weather",
+            6: "Flight",
+            7: "Membership"
+        }
 
     def predict(self, context, threshold=0.5):
         inputs = self.trigger_tokenizer(
@@ -68,41 +71,31 @@ class ProactiveNudgeEngine:
             outputs = self.trigger_model(**inputs)
             probs = torch.softmax(outputs.logits, dim=-1)
 
-        p_trigger = probs[0][self.TRIGGER_LABEL_ID].item()
-        prediction = torch.argmax(probs, dim=-1).item()
+        # Get the predicted class index
+        pred_idx = torch.argmax(probs, dim=-1).item()
+        confidence = probs[0][pred_idx].item()
+        
+        print(f"Predicted Class: {pred_idx} ({self.LABEL_MAP.get(pred_idx, 'Unknown')}) Conf: {confidence:.2f}")
 
-        trigger = p_trigger >= threshold
-
-        print("probs:", probs, "p_trigger:", p_trigger, "trigger:", trigger)
-
-        if not trigger:
+        # 0 is No Trigger
+        if pred_idx == 0:
             return {
                 "context": context,
                 "trigger": False,
+                "category": "None",
                 "nudge": None,
-                "confidence": p_trigger,
+                "confidence": confidence,
             }
 
-        gen_inputs = self.generator_tokenizer(
-            "nudge: " + context,
-            return_tensors="pt",
-            truncation=True,
-            padding=True,
-            max_length=128,
-        ).to(self.device)
-
-        with torch.no_grad():
-            gen_ids = self.generator_model.generate(
-                **gen_inputs, max_length=50, num_beams=4, early_stopping=True
-            )
-
-        nudge = self.generator_tokenizer.decode(gen_ids[0], skip_special_tokens=True)
+        # Retrieve nudge from dummy DB
+        nudge = self.DUMMY_DB.get(pred_idx, "Relevant Info")
 
         return {
             "context": context,
             "trigger": True,
+            "category": self.LABEL_MAP.get(pred_idx, "Unknown"),
             "nudge": nudge,
-            "confidence": p_trigger,
+            "confidence": confidence,
         }
 
 
@@ -115,25 +108,27 @@ if __name__ == "__main__":
 
     # Construct paths based on exp_name
     trigger_path = f"models/bert_trigger/{args.exp_name}"
-    generator_path = f"models/flan_t5_generator/{args.exp_name}"
 
     engine = ProactiveNudgeEngine(
-        trigger_model_path=trigger_path, generator_model_path=generator_path
+        trigger_model_path=trigger_path
     )
 
     test_contexts = [
-        "I have a meeting with the client at 3 PM.",
-        "It's sunny and warm outside.",
-        "My flight leaves in 2 hours and I haven't packed.",
-        "Just watching a movie.",
-        "# person1 # : are you sure? # person2 # : i know it does. i take this bus a lot. # person1 # : how long does the bus take to get there?",
+        "I need to book a flight but I don't have my passport info handy.",
+        "Meeting John at Starbucks at 5 PM.",
+        "What's the wifi password again?",
+        "I'm coming over, send me the location.",
+        "Do you have your loyalty card for the grocery store?",
+        "It's sunny and warm outside.", # Should be no trigger or simple one
     ]
 
     print("\n--- Running Inference Tests ---\n")
     for ctx in test_contexts:
         result = engine.predict(ctx)
         print(f"Context: {result['context']}")
-        print(f"Trigger: {result['trigger']} (Conf: {result['confidence']:.2f})")
         if result["trigger"]:
-            print(f"Nudge: {result['nudge']}")
+             print(f"Trigger: YES ({result['category']}) (Conf: {result['confidence']:.2f})")
+             print(f"Nudge: {result['nudge']}")
+        else:
+             print(f"Trigger: NO (Conf: {result['confidence']:.2f})")
         print("-" * 30)

@@ -16,6 +16,8 @@ class ProactiveDataset(Dataset):
         # For generation task, labels are tokenized target sequences
         elif task == "generation":
             self.labels = tokenized_targets['input_ids']
+        elif task == "generation-causal":
+            self.labels = labels
 
     def __len__(self):
         return len(self.input_ids)
@@ -36,22 +38,56 @@ class ProactiveDataset(Dataset):
 
 def create_dummy_data(num_samples=1000):
     """
-    Creates synthetic data dictionary.
+    Creates synthetic data dictionary with specific category labels.
+    Labels:
+    0: No Trigger
+    1: Passport
+    2: Wifi
+    3: Address
+    4: Schedule (Meeting/Appointment)
+    5: Weather
+    6: Flight
+    7: Membership
     """
     data = []
     
-    positives = [
-        ("I have a meeting with [PERSON] at [TIME].", "Prepare the presentation slides and review notes."),
-        ("It looks like it's going to rain today.", "Don't forget to take an umbrella."),
-        ("My flight leaves at [TIME], and traffic is bad.", "Leave 30 minutes earlier to avoid traffic."),
-        ("It's [PERSON]'s birthday tomorrow.", "Order a cake and buy a gift."),
-        ("I need to buy groceries for the week.", "Check the fridge and make a shopping list."),
-        ("I feel like I'm gaining weight.", "Consider going to the gym or for a run."),
-        ("I haven't called [PERSON] in a while.", "Give them a call to catch up."),
-        ("The house is getting messy.", "Schedule a cleaning session for this weekend."),
-        ("I'm running low on gas.", "Stop by the gas station on your way out."),
-        ("I have a dentist appointment tomorrow.", "Remember to brush and floss extra well tonight.")
-    ]
+    # Define templates by category
+    categories = {
+        1: [ # Passport
+            ("I need to book a flight but I don't have my passport info handy.", "Show Passport #A12345678"),
+            ("Can you send me your passport details for the reservation?", "Show Passport #A12345678"),
+            ("I'm filling out the visa form.", "Show Passport #A12345678"),
+            ("Do you have your passport number?", "Show Passport #A12345678"),
+        ],
+        2: [ # Wifi
+            ("What's the wifi password again?", "Show WiFi: MyNetwork / Pass123"),
+            ("I need to connect to the internet.", "Show WiFi: Guest_Wifi / guest123"),
+            ("Can I get on your wifi?", "Show WiFi: MyNetwork / Pass123"),
+        ],
+        3: [ # Address
+            ("What's your address?", "Share: 123 Maple St, Springfield"),
+            ("I'm coming over, send me the location.", "Share: 456 Oak Ave, Metropolis"),
+            ("Where do you live?", "Share: 123 Maple St, Springfield"),
+        ],
+        4: [ # Schedule
+            ("I have a dentist appointment with Dr. Smith at 2 PM.", "View: Dr. Smith (Dentist) @ 2 PM"),
+            ("Meeting [PERSON] at Starbucks at [TIME].", "View: Starbucks @ [TIME]"),
+            ("Don't forget the team sync at 10 AM in Conference Room B.", "View: Conf Room B @ 10 AM"),
+            ("Dinner reservation is at 7 PM at The Italian Place.", "View: The Italian Place @ 7 PM"),
+        ],
+        5: [ # Weather
+            ("It looks like it's going to rain today.", "Reminder: Take an umbrella"),
+            ("Is it cold outside?", "Reminder: Wear a jacket"),
+        ],
+        6: [ # Flight
+            ("My flight leaves at [TIME], and traffic is bad.", "Alert: Leave 30 mins early"),
+            ("What is your flight number?", "Show Flight: UA123"),
+        ],
+        7: [ # Membership
+            ("Do you have your loyalty card for the grocery store?", "Show Loyalty Card: #8839201"),
+            ("I need my gym member ID.", "Show Gym ID: #GYM-9922"),
+        ]
+    }
     
     negatives = [
         "I'm just watching TV.",
@@ -63,7 +99,9 @@ def create_dummy_data(num_samples=1000):
         "Listening to music.",
         "Sleeping in today.",
         "Playing video games.",
-        "Chatting with a friend about nothing."
+        "Chatting with a friend about nothing.",
+        "Just scrolling through social media.",
+        "Thinking about what to cook for dinner."
     ]
     
     people = ["John", "Sarah", "Mom", "Dad", "the boss", "Alice"]
@@ -73,12 +111,13 @@ def create_dummy_data(num_samples=1000):
         is_trigger = random.choice([True, False])
         
         if is_trigger:
-            template, nudge_template = random.choice(positives)
+            label = random.choice(list(categories.keys()))
+            template, nudge_template = random.choice(categories[label])
             ctx = template.replace("[PERSON]", random.choice(people)).replace("[TIME]", random.choice(times))
             nudge = nudge_template 
             data.append({
                 "context": ctx,
-                "trigger_label": 1,
+                "trigger_label": label, # Now this is a category ID
                 "target_nudge": nudge
             })
         else:
@@ -87,7 +126,7 @@ def create_dummy_data(num_samples=1000):
                 ctx = ctx.replace(".", " and relaxing.")
             data.append({
                 "context": ctx,
-                "trigger_label": 0,
+                "trigger_label": 0, # 0 = No Trigger
                 "target_nudge": ""
             })
             
@@ -100,6 +139,11 @@ def tokenize_data(data, tokenizer, task="trigger", max_length=128):
     # For T5, adding a task prefix is standard practice
     if task == "generation":
         contexts = ["nudge: " + d['context'] for d in data]
+    elif task == "generation-causal":
+        # Format: Context \nNUDGE:\n Target
+        # Use EOS token to signal end of generation
+        eos = tokenizer.eos_token if tokenizer.eos_token else ""
+        contexts = [f"{d['context']}\nNUDGE:\n{d['target_nudge']}{eos}" for d in data]
     else:
         contexts = [d['context'] for d in data]
     
@@ -136,6 +180,10 @@ def tokenize_data(data, tokenizer, task="trigger", max_length=128):
         tokenized_targets['input_ids'] = labels
         
         return ProactiveDataset(tokenized_inputs, tokenized_targets=tokenized_targets, task=task)
+    elif task == "generation-causal":
+        # For causal generation, labels are the same as input_ids
+        labels = tokenized_inputs['input_ids'].clone()
+        return ProactiveDataset(tokenized_inputs, labels=labels, task=task)
 
 def load_real_data(tokenizer, task="trigger", split="train"):
     raw_data = []

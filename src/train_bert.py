@@ -20,7 +20,7 @@ def train():
     parser.add_argument("--exp_name", type=str, default="default", help="Name of the experiment")
     args = parser.parse_args()
     
-    model_name = "bert-base-uncased" # Using standard BERT as trigger
+    model_name = "google/mobilebert-uncased" # Using MobileBERT for smaller size
     output_dir = f"models/bert_trigger/{args.exp_name}"
     logging_dir = f"./logs/{args.exp_name}"
     
@@ -33,9 +33,11 @@ def train():
     eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=200, split="eval", use_dummy=True)
     
     print(f"Loading model: {model_name}")
+    # Labels: 0=None, 1=Passport, 2=Wifi, 3=Address, 4=Schedule, 5=Weather, 6=Flight, 7=Membership
+    num_labels = 8 
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
-        num_labels=2 # 0: No Nudge, 1: Nudge
+        num_labels=num_labels 
     )
 
     # Initialize WandB
@@ -51,7 +53,7 @@ def train():
     
     training_args = TrainingArguments(
         output_dir=output_dir,
-        num_train_epochs=5,
+        num_train_epochs=8,
         per_device_train_batch_size=128,
         per_device_eval_batch_size=128,
         warmup_steps=20,
@@ -115,8 +117,8 @@ def train():
         # Save first 50 samples
         for i in range(min(50, len(preds))):
             ctx = decoded_inputs[i].replace("\n", " ")
-            gt = "Trigger" if labels[i] == 1 else "No Trigger"
-            pr = "Trigger" if preds[i] == 1 else "No Trigger"
+            gt = str(labels[i])
+            pr = str(preds[i])
             res = "✅" if labels[i] == preds[i] else "❌"
             f.write(f"| {ctx} | {gt} | {pr} | {res} |\n")
     
