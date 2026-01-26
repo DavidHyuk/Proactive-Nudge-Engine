@@ -30,25 +30,24 @@ class ProactiveNudgeEngine:
             self.trigger_model = AutoModelForSequenceClassification.from_pretrained(
                 trigger_model_path
             ).to(self.device)
-        except OSError:
-            print(
-                f"Warning: Could not load trained model from {trigger_model_path}. Loading base model 'google/mobilebert-uncased' instead."
-            )
+        except Exception as e:
+            print(f"Warning: Failed to load trained model from {trigger_model_path} ({e}).")
+            print("Loading base model 'google/mobilebert-uncased' instead.")
+            
             self.trigger_tokenizer = AutoTokenizer.from_pretrained("google/mobilebert-uncased")
-            # 8 labels as defined in preprocess.py/train_bert.py
+            # 7 labels as defined in preprocess.py/train_bert.py
             self.trigger_model = AutoModelForSequenceClassification.from_pretrained(
-                "google/mobilebert-uncased", num_labels=8
+                "google/mobilebert-uncased", num_labels=7
             ).to(self.device)
 
         # Magic Cue Dummy Database
         self.DUMMY_DB = {
-            1: "Show Passport #A12345678", # Passport
-            2: "Show WiFi: MyNetwork / Pass123", # Wifi
-            3: "Share: 123 Maple St, Springfield", # Address
-            4: "View: Upcoming Appointment @ 2 PM", # Schedule (Generic fallback)
-            5: "Reminder: Check Weather / Take Umbrella", # Weather
-            6: "Alert: Flight UA123 departs in 3 hours", # Flight
-            7: "Show Loyalty Card: #8839201", # Membership
+            1: "Passport Number: #A12345678", # Passport
+            2: "WiFi: MyNetwork / Pass123", # Wifi
+            3: "Address: 123 ABC Ave, Mountain View", # Address
+            4: "Schedule: Upcoming Appointment @ 2 PM", # Schedule (Generic fallback)
+            5: "Reminder Schedule: Flight UA123 departs in 3 hours", # Flight
+            6: "Show Membership Number: #8839201", # Membership
         }
         
         self.LABEL_MAP = {
@@ -57,12 +56,11 @@ class ProactiveNudgeEngine:
             2: "Wifi",
             3: "Address",
             4: "Schedule",
-            5: "Weather",
-            6: "Flight",
-            7: "Membership"
+            5: "Flight",
+            6: "Membership"
         }
 
-    def predict(self, context, threshold=0.5):
+    def predict(self, context, threshold=0.8):
         inputs = self.trigger_tokenizer(
             context, return_tensors="pt", truncation=True, padding=True, max_length=128
         ).to(self.device)
@@ -78,7 +76,7 @@ class ProactiveNudgeEngine:
         print(f"Predicted Class: {pred_idx} ({self.LABEL_MAP.get(pred_idx, 'Unknown')}) Conf: {confidence:.2f}")
 
         # 0 is No Trigger
-        if pred_idx == 0:
+        if pred_idx == 0 or confidence < threshold:
             return {
                 "context": context,
                 "trigger": False,

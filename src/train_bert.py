@@ -6,7 +6,8 @@ from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
     Trainer,
-    TrainingArguments
+    TrainingArguments,
+    EarlyStoppingCallback
 )
 # Assuming execution from project root via 'python src/train_bert.py' might add src to path,
 # or simply 'python src/train_bert.py' makes src the script dir.
@@ -25,16 +26,31 @@ def train():
     logging_dir = f"./logs/{args.exp_name}"
     
     print(f"Loading tokenizer: {model_name}")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    # Use use_fast=False to ensure vocab.txt is saved correctly for MobileBERT
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
     
     print("Loading dataset...")
-    # Generate sufficient dummy data for training
-    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=1000, split="train", use_dummy=True)
-    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=200, split="eval", use_dummy=True)
+    # Load Real Data (use_dummy=False)
+    # This will load DailyDialog/DialogSum/SAMsum if available and auto-label them
+    train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=1000, split="train", use_dummy=False)
+    
+    # If real data failed to load (e.g. dataset not downloaded), fallback to dummy but warn user
+    if train_dataset is None:
+        print(">>> WARNING: Real data not found or failed to load. Falling back to SYNTHETIC (DUMMY) data for training. <<<")
+        train_dataset = load_processed_data(tokenizer, task="trigger", num_samples=1000, split="train", use_dummy=True)
+    else:
+        print(">>> SUCCESS: Real data loaded successfully for training. <<<")
+
+    eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=200, split="eval", use_dummy=False)
+    if eval_dataset is None:
+         print(">>> WARNING: Real data not found for evaluation. Falling back to SYNTHETIC (DUMMY) data. <<<")
+         eval_dataset = load_processed_data(tokenizer, task="trigger", num_samples=200, split="eval", use_dummy=True)
+    else:
+         print(">>> SUCCESS: Real data loaded successfully for evaluation. <<<")
     
     print(f"Loading model: {model_name}")
-    # Labels: 0=None, 1=Passport, 2=Wifi, 3=Address, 4=Schedule, 5=Weather, 6=Flight, 7=Membership
-    num_labels = 8 
+    # Labels: 0=None, 1=Passport, 2=Wifi, 3=Address, 4=Schedule, 5=Flight, 6=Membership
+    num_labels = 7 
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
         num_labels=num_labels 
@@ -53,7 +69,7 @@ def train():
     
     training_args = TrainingArguments(
         output_dir=output_dir,
-        num_train_epochs=9,
+        num_train_epochs=5,
         per_device_train_batch_size=128,
         per_device_eval_batch_size=128,
         warmup_steps=20,
@@ -66,6 +82,8 @@ def train():
         save_steps=200,
         save_total_limit=2,
         load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
         dataloader_num_workers=0,
         dataloader_pin_memory=False,
         report_to="wandb",
@@ -77,6 +95,7 @@ def train():
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
     )
     
     print("Starting training...")
@@ -84,6 +103,7 @@ def train():
     
     print(f"Saving model to {output_dir}")
     trainer.save_model(output_dir)
+    # Important: Save tokenizer explicitly using save_pretrained
     tokenizer.save_pretrained(output_dir)
 
     # Classification Analysis Step

@@ -45,13 +45,12 @@ def create_dummy_data(num_samples=1000):
     2: Wifi
     3: Address
     4: Schedule (Meeting/Appointment)
-    5: Weather
-    6: Flight
-    7: Membership
+    5: Flight
+    6: Membership
     """
     data = []
     
-    # Define templates by category
+    # Expanded templates by category
     categories = {
         1: [ # Passport
             ("I need to book a flight but I don't have my passport info handy.", "Show Passport #A12345678"),
@@ -64,6 +63,11 @@ def create_dummy_data(num_samples=1000):
             ("Filling out the immigration card, what's my document number?", "Show Passport #A12345678"),
             ("Need passport details for the hotel registration.", "Show Passport #A12345678"),
             ("Booking an international train, passport required.", "Show Passport #A12345678"),
+            ("They need my passport number for the flight booking.", "Show Passport #A12345678"),
+            ("Just realized my passport expires soon, what was the number?", "Show Passport #A12345678"),
+            ("Can you double check my passport ID?", "Show Passport #A12345678"),
+            ("I need to scan my passport for the application.", "Show Passport #A12345678"),
+            ("What is the issue date on my passport?", "Show Passport #A12345678"),
         ],
         2: [ # Wifi
             ("What's the wifi password again?", "Show WiFi: MyNetwork / Pass123"),
@@ -76,6 +80,11 @@ def create_dummy_data(num_samples=1000):
             ("Setting up the new device, need wifi pass.", "Show WiFi: MyNetwork / Pass123"),
             ("The guest wifi password is needed for the visitors.", "Show WiFi: Guest_Wifi / guest123"),
             ("Connecting the TV to the internet.", "Show WiFi: MyNetwork / Pass123"),
+            ("Do you know the password for this network?", "Show WiFi: MyNetwork / Pass123"),
+            ("I need the wifi code.", "Show WiFi: Guest_Wifi / guest123"),
+            ("Internet access code please.", "Show WiFi: MyNetwork / Pass123"),
+            ("Unable to join network, verify password.", "Show WiFi: MyNetwork / Pass123"),
+            ("Give me the wifi key.", "Show WiFi: MyNetwork / Pass123"),
         ],
         3: [ # Address
             ("What's your address?", "Share: 123 Maple St, Springfield"),
@@ -88,6 +97,11 @@ def create_dummy_data(num_samples=1000):
             ("Updating my contact info, what's your current address?", "Share: 123 Maple St, Springfield"),
             ("Sending a gift, need the mailing address.", "Share: 123 Maple St, Springfield"),
             ("The cab driver needs the destination address.", "Share: 456 Oak Ave, Metropolis"),
+            ("Where should I send the letter?", "Share: 123 Maple St, Springfield"),
+            ("I forgot your apartment number.", "Share: 123 Maple St, Springfield"),
+            ("Directions to your place?", "Share: 456 Oak Ave, Metropolis"),
+            ("What is the zip code for your house?", "Share: 123 Maple St, Springfield"),
+            ("Please confirm your shipping address.", "Share: 123 Maple St, Springfield"),
         ],
         4: [ # Schedule
             ("I have a dentist appointment with Dr. Smith at 2 PM.", "View: Dr. Smith (Dentist) @ 2 PM"),
@@ -102,20 +116,12 @@ def create_dummy_data(num_samples=1000):
             ("Schedule a reminder for the parent-teacher conference.", "View: School @ 4 PM"),
             ("Meeting with the lawyer at [TIME].", "View: Law Office @ [TIME]"),
             ("Lunch date with [PERSON] at noon.", "View: Bistro @ 12 PM"),
+            ("We have a reservation at [PLACE] at [TIME].", "View: [PLACE] @ [TIME]"),
+            ("Party at [PLACE] starts at [TIME].", "View: [PLACE] @ [TIME]"),
+            ("Interview scheduled for [TIME].", "View: Office @ [TIME]"),
+            ("Gym session at [TIME] today.", "View: Gym @ [TIME]"),
         ],
-        5: [ # Weather
-            ("It looks like it's going to rain today.", "Reminder: Take an umbrella"),
-            ("Is it cold outside?", "Reminder: Wear a jacket"),
-            ("Checking the forecast for the weekend.", "Reminder: Check Weather App"),
-            ("Do I need sunscreen today?", "Reminder: High UV Alert"),
-            ("Is it snowing?", "Reminder: Wear boots"),
-            ("What's the temperature right now?", "Reminder: Check Thermostat"),
-            ("Storm warning in effect.", "Reminder: Close windows"),
-            ("It's extremely hot out there.", "Reminder: Drink water"),
-            ("Planning a picnic, hope it doesn't rain.", "Reminder: Check Forecast"),
-            ("Windy day today.", "Reminder: Secure loose items"),
-        ],
-        6: [ # Flight
+        5: [ # Flight
             ("My flight leaves at [TIME], and traffic is bad.", "Alert: Leave 30 mins early"),
             ("What is your flight number?", "Show Flight: UA123"),
             ("I need to check in for my flight.", "Show Flight: UA123"),
@@ -126,8 +132,13 @@ def create_dummy_data(num_samples=1000):
             ("Boarding pass for flight UA123.", "Show Flight: UA123"),
             ("Picking up mom from the airport, what's her flight?", "Show Flight: KE081"),
             ("Gate change for the flight.", "Show Flight: UA123"),
+            ("Did you book the plane tickets?", "Show Flight: UA123"),
+            ("Send me the itinerary.", "Show Flight: UA123"),
+            ("What airline are we flying?", "Show Flight: UA123"),
+            ("Baggage claim number?", "Show Flight: UA123"),
+            ("Is the flight delayed?", "Show Flight: UA123"),
         ],
-        7: [ # Membership
+        6: [ # Membership
             ("Do you have your loyalty card for the grocery store?", "Show Loyalty Card: #8839201"),
             ("I need my gym member ID.", "Show Gym ID: #GYM-9922"),
             ("Scanning my point card at the checkout.", "Show Loyalty Card: #8839201"),
@@ -138,6 +149,11 @@ def create_dummy_data(num_samples=1000):
             ("Accumulating points for this purchase.", "Show Loyalty Card: #8839201"),
             ("Login requires membership number.", "Show Member ID: #MEM-5566"),
             ("Where is my frequent flyer number?", "Show FF #: #FLY-9988"),
+            ("Do you have the rewards app?", "Show Member ID: #MEM-5566"),
+            ("I need to renew my membership.", "Show Member ID: #MEM-5566"),
+            ("Club card for the discount.", "Show Loyalty Card: #8839201"),
+            ("Show your pass at the gate.", "Show Member ID: #MEM-5566"),
+            ("What is my subscriber ID?", "Show Member ID: #MEM-5566"),
         ]
     }
     
@@ -181,11 +197,43 @@ def create_dummy_data(num_samples=1000):
         "Math is hard.",
         "I love coding.",
         "Python is a snake.",
-        "Data science is cool."
+        "Data science is cool.",
+        "Where is the remote?",
+        "I lost my keys.",
+        "Can you pass the salt?",
+        "This song is great.",
+        "I want to go to the beach.",
+        "Do you like pizza?",
+        "I need a haircut.",
+        "My shoes are dirty.",
+        "The train is late.",
+        "I missed the bus.",
+        "It is too loud here.",
+        "I am learning French.",
+        "My computer crashed.",
+        "The internet is slow.",
+        "I have a headache.",
+        "I need a vacation.",
+        "Let's watch a movie.",
+        "I am hungry.",
+        "I am thirsty.",
+        "I am bored.",
+        "I am happy.",
+        "I am sad.",
+        "I am angry.",
+        "I am excited.",
+        "I am nervous.",
+        "I am confident.",
+        "I am proud.",
+        "I am ashamed.",
+        "I am guilty.",
+        "I am jealous.",
+        "I am envious."
     ]
     
-    people = ["John", "Sarah", "Mom", "Dad", "the boss", "Alice"]
-    times = ["2 PM", "5 PM", "9 AM", "noon", "6:30 PM"]
+    people = ["John", "Sarah", "Mom", "Dad", "the boss", "Alice", "Bob", "Charlie", "David", "Eve"]
+    times = ["2 PM", "5 PM", "9 AM", "noon", "6:30 PM", "10 AM", "1 PM", "3:15 PM", "8 PM", "midnight"]
+    places = ["Starbucks", "the office", "home", "the park", "school", "the library", "the gym", "the mall", "the airport", "the station"]
     
     for _ in range(num_samples):
         is_trigger = random.choice([True, False])
@@ -193,8 +241,8 @@ def create_dummy_data(num_samples=1000):
         if is_trigger:
             label = random.choice(list(categories.keys()))
             template, nudge_template = random.choice(categories[label])
-            ctx = template.replace("[PERSON]", random.choice(people)).replace("[TIME]", random.choice(times))
-            nudge = nudge_template 
+            ctx = template.replace("[PERSON]", random.choice(people)).replace("[TIME]", random.choice(times)).replace("[PLACE]", random.choice(places))
+            nudge = nudge_template.replace("[PLACE]", random.choice(places)).replace("[TIME]", random.choice(times)).replace("[PERSON]", random.choice(people))
             data.append({
                 "context": ctx,
                 "trigger_label": label, # Now this is a category ID
@@ -295,9 +343,13 @@ def load_real_data(tokenizer, task="trigger", split="train"):
                     context_str = " ".join(context_turns)
                     
                     if len(dialog[j].split()) > 2:
+                        # Auto-label based on keywords
+                        full_text = context_str + " " + dialog[j+1]
+                        label = get_category_label(full_text)
+                        
                         raw_data.append({
                             "context": context_str,
-                            "trigger_label": 1,
+                            "trigger_label": label,
                             "target_nudge": dialog[j+1]
                         })
         except Exception as e:
@@ -331,9 +383,13 @@ def load_real_data(tokenizer, task="trigger", split="train"):
                         context_lines = lines[start_idx : j+1]
                         context_str = " ".join(context_lines) # Keep Speaker: Text format
                         
+                        # Auto-label
+                        full_text = context_str + " " + p2[1].strip()
+                        label = get_category_label(full_text)
+                        
                         raw_data.append({
                             "context": context_str,
-                            "trigger_label": 1,
+                            "trigger_label": label,
                             "target_nudge": p2[1].strip()
                         })
         except Exception as e:
@@ -365,9 +421,13 @@ def load_real_data(tokenizer, task="trigger", split="train"):
                         context_lines = lines[start_idx : j+1]
                         context_str = " ".join(context_lines)
                         
+                        # Auto-label
+                        full_text = context_str + " " + p2[1].strip()
+                        label = get_category_label(full_text)
+                        
                         raw_data.append({
                             "context": context_str,
-                            "trigger_label": 1,
+                            "trigger_label": label,
                             "target_nudge": p2[1].strip()
                         })
         except Exception as e:
@@ -376,11 +436,26 @@ def load_real_data(tokenizer, task="trigger", split="train"):
     if not raw_data:
         return None
         
-    # Add negatives for Trigger task
-    if task == "trigger":
-        neg = create_dummy_data(len(raw_data)//4)
-        raw_data.extend([d for d in neg if d['trigger_label']==0])
-        random.shuffle(raw_data)
+    # Balance data: Real data will be mostly label 0.
+    # We want to keep all positives, and downsample negatives to 50% of total
+    positives = [d for d in raw_data if d['trigger_label'] > 0]
+    negatives = [d for d in raw_data if d['trigger_label'] == 0]
+    
+    print(f"Real Data Stats: Positives={len(positives)}, Negatives={len(negatives)}")
+    
+    # If not enough positives in real data, we might want to augment (but user said 'no dummy')
+    # We will just downsample negatives to match 3x positives to handle class imbalance
+    if len(positives) > 0:
+        target_neg_count = min(len(negatives), len(positives) * 3)
+        random.shuffle(negatives)
+        raw_data = positives + negatives[:target_neg_count]
+    else:
+         # Fallback if no specific categories found in real data
+         print("Warning: No specific categories found in real data. Using subset of negatives.")
+         random.shuffle(negatives)
+         raw_data = negatives[:1000] # Cap to 1000
+         
+    random.shuffle(raw_data)
         
     print(f"Tokenizing {len(raw_data)} samples... (This might take a moment)")
     return tokenize_data(raw_data, tokenizer, task=task)
@@ -400,3 +475,16 @@ def load_processed_data(tokenizer, task="trigger", num_samples=100, use_dummy=Fa
         
     print(f"Tokenizing {len(raw_data)} synthetic samples...")
     return tokenize_data(raw_data, tokenizer, task=task)
+
+def get_category_label(text):
+    """
+    Heuristic to assign category labels to real dialogue data.
+    """
+    text_lower = text.lower()
+    if any(x in text_lower for x in ["passport", "visa", "immigration document"]): return 1
+    if any(x in text_lower for x in ["wifi", "wi-fi", "internet password", "network key"]): return 2
+    if any(x in text_lower for x in ["address", "zip code", "location", "where do you live", "share your address"]): return 3
+    if any(x in text_lower for x in ["meeting", "appointment", "schedule", "calendar", "reservation", "booking"]): return 4
+    if any(x in text_lower for x in ["flight", "airport", "airline", "boarding pass"]): return 5
+    if any(x in text_lower for x in ["membership", "loyalty card", "gym id", "member id"]): return 6
+    return 0
