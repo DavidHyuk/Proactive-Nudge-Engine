@@ -8,7 +8,7 @@ Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 �
 
 ### Core Workflow
 
-1. **Triggering & Categorization (MobileBERT)**: 사용자 맥락을 분석하여 넛지가 필요한지 판단함과 동시에, 어떤 종류의 정보(여권, 와이파이, 일정 등)가 필요한지 8가지 카테고리로 분류합니다.
+1. **Triggering & Categorization (MobileBERT)**: 사용자 맥락을 분석하여 넛지가 필요한지 판단함과 동시에, 어떤 종류의 정보(여권, 멤버십코드, 항공 티켓 일정 등)가 필요한지 7가지 카테고리로 분류합니다.
 2. **Smart Retrieval (Rule-Based)**: 분류된 카테고리에 맞춰 미리 저장된 사용자 정보(Magic Cue)를 즉각적으로 호출하여 제안합니다.
 
 ## 🏗 System Architecture
@@ -24,8 +24,8 @@ Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 �
 생성형 AI(LLM)가 개인정보를 직접 생성할 때 발생할 수 있는 **환각(Hallucination)** 과 **보안(Privacy)** 문제를 원천 차단하기 위해, 실제 상용화된 온디바이스 AI와 같이 **[경량 분류 + 보안 검색]** 구조를 채택했습니다.
 
 ### 1. MobileBERT (Triggering)
-- **선정 이유**: 기존 BERT Base 모델 대비 크기는 1/4, 속도는 5.5배 빠르면서도 유사한 성능을 냅니다.
-- **역할**: Pixel의 `System Intelligence` 코어와 같이, 단순한 트리거 유무(Binary)가 아닌 **구체적인 의도(Intent)를 8개 클래스로 정밀 분류**합니다.
+- **선정 이유**: BERT Base 모델 대비 크기는 1/4, 속도는 5.5배 빠르면서도 유사한 성능을 냅니다.
+- **역할**: Pixel의 `System Intelligence` 코어와 같이, 단순한 트리거 유무(Binary)가 아닌 **구체적인 의도(Intent)를 7개 클래스로 정밀 분류**합니다.
 
 ### 2. Retrieval System (Nudge Generation)
 - **설계 의도**: LLM이 여권 번호를 '상상'해서 생성하는 것은 위험합니다. 본 시스템은 의도가 파악되면 **보안 저장소(Secure Store)** 에서 정확한 실제 데이터를 **인출(Retrieval)** 하는 방식을 사용합니다.
@@ -41,7 +41,7 @@ Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 �
 ```text
 Proactive-Nudge-Engine/
 ├── data/               # Taskmaster, MultiWOZ 등 데이터셋 저장
-├── models/             # Fine-tuned BERT & GPT-2 체크포인트
+├── models/             # Fine-tuned BERT 체크포인트
 ├── src/                # 핵심 소스 코드
 │   ├── preprocess.py   # 데이터 전처리 (카테고리 라벨링 포함)
 │   ├── train_bert.py   # MobileBERT 트리거 및 카테고리 분류 학습
