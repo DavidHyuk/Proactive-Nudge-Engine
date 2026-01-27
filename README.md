@@ -1,15 +1,15 @@
 # Proactive-Nudge-Engine 🚀
 
-Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 지능적으로 파악하여 필요한 정보를 선제적으로 제안하는 Proactive Nudge(선제적 넛지) 시스템을 구현하는 프로젝트입니다.
+Proactive-Nudge-Engine is a project that implements a Proactive Nudge system, similar to Google's Magic Cue, which intelligently identifies the user's context and proactively suggests necessary information.
 
 ## 📌 Project Overview
 
-기존의 어시스턴트가 사용자의 질문에 답하는 방식(Reactive)이었다면, 본 프로젝트는 사용자가 묻기 전에 시스템이 먼저 필요한 조치를 제안(Proactive)하는 것을 목표로 합니다.
+While traditional assistants respond to user questions (Reactive), this project aims to have the system proactively suggest necessary actions before the user asks (Proactive).
 
 ### Core Workflow
 
-1. **Triggering & Categorization (MobileBERT)**: 사용자 맥락을 분석하여 넛지가 필요한지 판단함과 동시에, 어떤 종류의 정보(여권, 멤버십코드, 항공 티켓 일정 등)가 필요한지 7가지 카테고리로 분류합니다.
-2. **Smart Retrieval (Rule-Based)**: 분류된 카테고리에 맞춰 미리 저장된 사용자 정보(Magic Cue)를 즉각적으로 호출하여 제안합니다.
+1. **Triggering & Categorization (MobileBERT)**: Analyzes user context to determine if a nudge is needed and simultaneously classifies what type of information (passport, membership code, flight schedule, etc.) is required into 7 categories.
+2. **Smart Retrieval (Rule-Based)**: Instantly retrieves and suggests pre-stored user information (Magic Cue) based on the classified category.
 
 ## 🏗 System Architecture
 
@@ -20,40 +20,41 @@ Proactive-Nudge-Engine은 구글의 Magic Cue와 같이 사용자의 맥락을 �
 
 ## 💡 Model Selection & Optimization (Google Pixel Style)
 
-본 프로젝트의 아키텍처는 **Google Pixel의 'Android System Intelligence' (Magic Cue)** 와 동일한 설계 철학을 따릅니다. 
-생성형 AI(LLM)가 개인정보를 직접 생성할 때 발생할 수 있는 **환각(Hallucination)** 과 **보안(Privacy)** 문제를 원천 차단하기 위해, 실제 상용화된 온디바이스 AI와 같이 **[경량 분류 + 보안 검색]** 구조를 채택했습니다.
+The architecture of this project follows the same design philosophy as **Google Pixel's 'Android System Intelligence' (Magic Cue)**. To fundamentally prevent **Hallucination** and **Privacy** issues that can occur when Generative AI (LLM) directly generates personal information, we adopted a **[Lightweight Classification + Secure Retrieval]** structure, similar to actual commercial on-device AI.
 
 ### 1. MobileBERT (Triggering)
-- **선정 이유**: BERT Base 모델 대비 크기는 1/4, 속도는 5.5배 빠르면서도 유사한 성능을 냅니다.
-- **역할**: Pixel의 `System Intelligence` 코어와 같이, 단순한 트리거 유무(Binary)가 아닌 **구체적인 의도(Intent)를 7개 클래스로 정밀 분류**합니다.
+- **Reason for Selection**: It is 1/4 the size and 5.5x faster than the BERT Base model while achieving similar performance.
+- **Role**: Like the `System Intelligence` core of Pixel, it precisely classifies **specific intents into 7 classes**, rather than just binary trigger presence.
 
 ### 2. Retrieval System (Nudge Generation)
-- **설계 의도**: LLM이 여권 번호를 '상상'해서 생성하는 것은 위험합니다. 본 시스템은 의도가 파악되면 **보안 저장소(Secure Store)** 에서 정확한 실제 데이터를 **인출(Retrieval)** 하는 방식을 사용합니다.
-- **장점**: 
-  1. **Zero Hallucination**: 100% 정확한 데이터 제공
-  2. **Privacy First**: 민감한 개인정보가 모델 가중치에 포함되지 않음
-  3. **Ultra-Low Latency**: 생성 과정 없이 즉각적인 UI 표출 가능
+- **Design Intent**: It is dangerous for an LLM to 'imagine' and generate a passport number. This system uses a method of **Retrieving** accurate actual data from a **Secure Store** once the intent is identified.
+- **Advantages**: 
+  1. **Zero Hallucination**: Provides 100% accurate data
+  2. **Privacy First**: Sensitive personal information is not included in model weights
+  3. **Ultra-Low Latency**: Immediate UI display possible without generation process
 
 ## 📂 Project Structure
 
-프로젝트의 효율적인 관리와 학습을 위해 아래와 같은 구조를 유지합니다.
+The following structure is maintained for efficient project management and training.
 
 ```text
 Proactive-Nudge-Engine/
-├── data/               # Taskmaster, MultiWOZ 등 데이터셋 저장
-├── models/             # Fine-tuned BERT 체크포인트
-├── src/                # 핵심 소스 코드
-│   ├── preprocess.py   # 데이터 전처리 (카테고리 라벨링 포함)
-│   ├── train_bert.py   # MobileBERT 트리거 및 카테고리 분류 학습
-│   └── train_gpt2.py   # (Deprecated) 생성형 접근 방식 레거시 코드
-├── notebooks/          # 실험 및 시각화 (Jupyter)
-├── reports/            # 실험 고찰 리포트
+├── data/               # Storage for Taskmaster, MultiWOZ, etc. datasets
+├── models/             # Fine-tuned BERT checkpoints
+├── src/                # Core source code
+│   ├── preprocess.py   # Data preprocessing (includes category labeling)
+│   ├── train_bert.py   # MobileBERT trigger and category classification training
+│   ├── inference.py    # On-device inference engine simulation with smart retrieval
+│   └── export_onnx.py  # Script to export trained models to ONNX for Android
+├── android_app/        # Android demo application (Jetpack Compose)
+├── notebooks/          # Experiments and visualization (Jupyter)
+├── reports/            # Experiment review reports
 │   ├── 2026-xx-xx_BERT_trigger_test.md
 │   └── gpt2_generation_analysis.md
-├── assets/             # README나 보고서에 쓸 이미지들
+├── assets/             # Images for README or reports
 │   ├── bert_loss.png
 │   └── architecture.png
-├── .gitignore          # 대용량 모델 및 가상환경 제외
+├── .gitignore          # Exclude large models and virtual environments
 ├── README.md
 └── requirements.txt
 ```
@@ -68,10 +69,10 @@ Proactive-Nudge-Engine/
 
 ### Environment Setup
 
-macOS (Apple Silicon) 환경에 최적화된 Python 3.11 환경을 구축합니다.
+Set up a Python 3.11 environment optimized for macOS (Apple Silicon).
 
 ```bash
-# 환경 생성
+# Create environment
 conda create -n proactive-nudge -c conda-forge python=3.11 -y
 conda activate proactive-nudge
 
@@ -82,7 +83,7 @@ pip install transformers datasets accelerate evaluate sentencepiece protobuf
 
 ## 📊 Datasets
 
-이 프로젝트는 아래의 데이터셋을 활용하여 모델을 학습합니다.
+This project uses the following datasets to train the model.
 
 | Dataset | Primary Use | Source |
 | :--- | :--- | :--- |
